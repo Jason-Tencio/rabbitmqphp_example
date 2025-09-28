@@ -1,8 +1,8 @@
 <?php
-$host = "dbvm.local";     // change if not using hosts file
-$user = "testUser";       // your DB user
+$host = "100.115.110.102";     // change if not using hosts file
+$user = "webuser";       // your DB user
 $pass = "12345";          // your DB password
-$db   = "spotify_clone";
+$db   = "tune";
 
 $conn = new mysqli($host, $user, $pass, $db);
 if ($conn->connect_error) {
