@@ -1,30 +1,25 @@
 <?php
-require_once __DIR__ . "/db_connect.php";
+require_once __DIR__ . "/mq_client.php";
+$error = '';
 
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $username = $_POST['username'];
-    $email    = $_POST['email'];
-    $password_hash = password_hash($_POST['password'], PASSWORD_DEFAULT);
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $u = trim($_POST['username'] ?? '');
+    $e = trim($_POST['email'] ?? '');
+    $p = $_POST['password'] ?? '';
 
-    $stmt = $conn->prepare("INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)");
-    if (!$stmt) {
-        $error = "Registration failed. Please try again.";
+    if ($u === '' || $e === '' || $p === '') {
+        $error = "Please fill out all fields.";
     } else {
-        $stmt->bind_param("sss", $username, $email, $password_hash);
-        if ($stmt->execute()) {
-            header("Location: login.php");
-            exit();
+        $res = mq_rpc(['type' => 'register', 'username' => $u, 'email' => $e, 'password' => $p]);
+        if (($res['status'] ?? '') === 'ok') {
+            header('Location: login.php'); exit;
         } else {
-            if ($stmt->errno === 1062 || stripos($stmt->error, 'Duplicate') !== false) {
-                $error = "That username or email is already taken.";
-            } else {
-                $error = "Registration failed. Please try again.";
-            }
+            $error = $res['message'] ?? 'Registration failed.';
         }
-        $stmt->close();
     }
 }
 ?>
+
 <!doctype html>
 <html>
 <head>
